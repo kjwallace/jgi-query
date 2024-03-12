@@ -53,6 +53,9 @@ optional arguments:
   -l logfile, --load_failed logfile
                         retry downloading from URLs listed in log file
                         (default: None)
+  -p, --local_dir,LOCAL_DIR
+                        local directory that you want to store all local files in, defaults to '',
+                        or the directory that contains the jgi-query.py file.
   -r REGEX, --regex REGEX
                         Regex pattern to use to auto-select and download files
                         (no interactive prompt) (default: None)
