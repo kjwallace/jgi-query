@@ -680,7 +680,7 @@ def check_sizeInBytes(filename, sizeInBytes, print_message=True):
     return ret_val
     
 
-def download_from_url(url, timeout=120, retry=0, min_file_bytes=20, url_to_validate={}):
+def download_from_url(url, timeout=120, retry=0, min_file_bytes=20, url_to_validate={}, filepath = ''):
     """
     Attempts to download a file from JGI servers using cURL.
 
@@ -694,6 +694,7 @@ def download_from_url(url, timeout=120, retry=0, min_file_bytes=20, url_to_valid
     url = url.replace("&amp;", "&")
 
     filename = re.search('.+/(.+$)', url).group(1)
+    filename = filepath+'/'+filename
     url_prefix = "https://genome.jgi.doe.gov"
     download_command = (
         "curl -m {} '{}{}' -b cookies "
@@ -793,7 +794,7 @@ def log_failed(organism, failed_urls):
         f.write('\n'.join(failed_urls))
 
 
-def download_list(url_list, url_to_validate={}, timeout=120, retries=3):
+def download_list(url_list, url_to_validate={}, timeout=120, retries=3, filepath = ''):
     """
     Attempts download command on a list of partial file
     URLs (completed by download_from_url()).
@@ -817,7 +818,7 @@ def download_list(url_list, url_to_validate={}, timeout=120, retries=3):
             subprocess.run(LOGIN_STRING, shell=True)
             start_time = time.time()
         fn, cmd, success = download_from_url(
-            url, timeout=timeout, retry=retries, url_to_validate=url_to_validate)
+            url, timeout=timeout, retry=retries, url_to_validate=url_to_validate, filepath)
         if not success:
             broken_urls.append(url)
             broken_files.append(fn)
@@ -956,6 +957,7 @@ parser.add_argument("-f", "--filter_files", action='store_true',
                     help="filter organism results by config categories instead "
                          "of reporting all files listed by JGI for the query "
                          "(work in progress)")
+parser.add_argument("-p", "--local_path", type=str, default='', help = 'path to local directory that you would like the downloaded files stored in')
 parser.add_argument("-u", "--usage", action='store_true',
                     help="print verbose usage information and exit")
 parser.add_argument("-n", "--retry_n", type=int, default=4,
@@ -987,6 +989,7 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 DIRECT_REGEX = args.regex
 GET_ALL = args.all
+LOCAL_DIR = args.local_path
 RETRY_FROM_LOG = args.load_failed
 if GET_ALL or DIRECT_REGEX or RETRY_FROM_LOG:
     INTERACTIVE = False
@@ -1220,7 +1223,7 @@ if INTERACTIVE:
         clean_exit("ABORTING DOWNLOAD")
 
 downloaded_files, failed_urls = download_list(
-    urls_to_get, url_to_validate=url_to_validate, retries=args.retry_n)
+    urls_to_get, url_to_validate=url_to_validate, retries=args.retry_n, filepath = LOCAL_DIR)
 
 print("Finished downloading {} files.".format(len(downloaded_files)))
 
@@ -1230,7 +1233,7 @@ if failed_urls and INTERACTIVE:
         "{} files failed to download; retry them? (y/n): ".format(n_broken))
     if retry_broken.lower() in ("yes", "y"):
         downloaded_files, failed_urls = download_list(
-            failed_urls, url_to_validate=url_to_validate, retries=1)
+            failed_urls, url_to_validate=url_to_validate, retries=1, filepath=LOCAL_DIR)
 
 # Kindly offer to unpack files, if files remain after error check
 if downloaded_files and INTERACTIVE:
