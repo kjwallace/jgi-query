@@ -692,9 +692,11 @@ def download_from_url(url, timeout=120, retry=0, min_file_bytes=20, url_to_valid
     sizeInBytes = url_to_validate[url].get("sizeInBytes", None)
 
     url = url.replace("&amp;", "&")
-
+    if filepath != "":
+        filepath = filepath+'/'
+        
     filename = re.search('.+/(.+$)', url).group(1)
-    filename = filepath+'/'+filename
+    filename = filepath+filename
     url_prefix = "https://genome.jgi.doe.gov"
     download_command = (
         "curl -m {} '{}{}' -b cookies "
