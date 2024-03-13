@@ -736,6 +736,10 @@ def download_from_url(url, timeout=120, retry=0, min_file_bytes=20, url_to_valid
                         break
                     current_retry += 1
                     time.sleep(10)
+                if success == False:
+                    with open('failed.txt', 'a') as f:
+                        f.write(url + '\n')
+                
 
     return filename, download_command, success
 
